@@ -1,0 +1,12 @@
+/client/.gitignore
+/server/.gitignore
+node_modules/
+dist/
+build/
+.env
+.env.local
+*.log
+.firebase/
+serviceAccountKey.json
+.DS_Store
+_export/
