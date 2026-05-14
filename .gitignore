@@ -7,6 +7,5 @@ build/
 .env.local
 *.log
 .firebase/
-serviceAccountKey.json
 .DS_Store
 _export/
