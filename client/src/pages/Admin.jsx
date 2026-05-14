@@ -159,7 +159,7 @@ export default function Admin() {
                         }
                       />
                     </td>
-                    <td>
+                    <td className="space-x-2">
                       <button
                         type="button"
                         className="btn btn-ghost"

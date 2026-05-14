@@ -6,19 +6,24 @@ const serviceAccountPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
 const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
 function init() {
   if (admin.apps.length) return admin;
+
   if (serviceAccountJson) {
     const parsed = JSON.parse(serviceAccountJson);
+    // Fix private key encoding
+    parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
     admin.initializeApp({ credential: admin.credential.cert(parsed) });
     return admin;
   }
+
   if (serviceAccountPath) {
     const parsed = JSON.parse(readFileSync(serviceAccountPath, "utf8"));
+    // Fix private key encoding
+    parsed.private_key = parsed.private_key.replace(/\\n/g, "\n");
     admin.initializeApp({ credential: admin.credential.cert(parsed) });
     return admin;
   }
-  admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-  });
+
+  admin.initializeApp({ credential: admin.credential.applicationDefault() });
   return admin;
 }
 

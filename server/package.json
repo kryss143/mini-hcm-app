@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/server.js",
+    "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider nodemon src/server.js",
     "start": "node src/server.js"
   },
   "keywords": [],
@@ -20,5 +20,9 @@
   },
   "overrides": {
     "@tootallnate/once": "^3.0.1"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "nodemon": "^3.1.14"
   }
 }
