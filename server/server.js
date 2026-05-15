@@ -1,10 +1,10 @@
 import express from "express";
 import cors from "cors";
-import "./firebase.js";
-import usersRouter from "./routes/users.js";
-import attendanceRouter from "./routes/attendance.js";
-import summaryRouter from "./routes/summary.js";
-import adminRouter from "./routes/admin.js";
+import "./src/firebase.js";
+import usersRouter from "./src/routes/users.js";
+import attendanceRouter from "./src/routes/attendance.js";
+import summaryRouter from "./src/routes/summary.js";
+import adminRouter from "./src/routes/admin.js";
 
 const app = express();
 const port = Number(process.env.PORT) || 4000;
