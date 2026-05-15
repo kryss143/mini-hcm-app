@@ -10,4 +10,3 @@ build/
 .firebase/
 .DS_Store
 _export/
-.scripts/
