@@ -47,6 +47,11 @@ app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: "Internal server error" });
 });
-app.listen(port, () => {
-  console.log(`mini-hcm API listening on http://localhost:${port}`);
-});
+// Local dev only — Vercel ignores app.listen() in serverless mode
+if (process.env.NODE_ENV !== "production") {
+  app.listen(port, () => {
+    console.log(`mini-hcm API listening on http://localhost:${port}`);
+  });
+}
+
+export default app;
