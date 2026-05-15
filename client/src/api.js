@@ -1,4 +1,7 @@
-const base = import.meta.env.VITE_API_BASE || "";
+const devBase = import.meta.env.VITE_API_BASE || "";
+const prodBase = import.meta.env.VITE_API_PROD_BASE || "";
+
+const base = import.meta.env.PROD ? prodBase : devBase;
 
 export async function api(path, options = {}) {
   const { token, ...rest } = options;
