@@ -33,7 +33,13 @@ function Shell({ children }) {
   return (
     <div className="app-shell">
       <header className="backdrop-blur-3xl backdrop-brightness-130 border border-gray-600 text-white px-4 py-3 rounded-2xl flex items-center justify-between mb-5">
-        <div className="brand">Mini HCM</div>
+        <div className="brand">
+          <img
+            src="icons/mini-hcm-navbar-logo.svg"
+            alt="Mini HCM Navbar Logo"
+            className="h-12 w-auto"
+          />
+        </div>
 
         {/* Desktop nav */}
         <nav className="hidden md:flex items-center space-x-3">

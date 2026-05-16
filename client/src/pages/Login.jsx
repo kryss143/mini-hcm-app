@@ -68,8 +68,12 @@ export default function Login() {
             color: "var(--muted)",
             fontSize: "0.9rem",
           }}
+          className="flex justify-center py-1"
         >
-          No account? <Link to="/register">Register</Link>
+          No account?{" "}
+          <Link to="/register" className="mx-1">
+            Register
+          </Link>
         </p>
       </div>
     </div>
