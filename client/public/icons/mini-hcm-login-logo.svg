@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 172" width="160" height="172">
+  <rect x="32" y="0" width="96" height="96" rx="20" fill="#0B1829"/>
+  <rect x="33" y="1" width="94" height="94" rx="19" fill="none" stroke="#1A3560" stroke-width="1.5"/>
+  <polyline points="51,80 51,30 80,56 109,30 109,80" stroke="#4F7EF8" stroke-width="9.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="51" cy="20" r="10" fill="#4F7EF8"/>
+  <circle cx="109" cy="20" r="10" fill="#4F7EF8"/>
+  <text x="80" y="115" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="13" font-weight="300" fill="#8AACDE" letter-spacing="4">MINI</text>
+  <rect x="58" y="121" width="44" height="1" rx="0.5" fill="#1A3560"/>
+  <text x="80" y="158" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="#4F7EF8" letter-spacing="6">HCM</text>
+</svg>

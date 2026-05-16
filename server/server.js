@@ -13,7 +13,7 @@ const allowedOrigins = [
   ...(process.env.CORS_ORIGIN?.split(",") ?? []),
   ...(process.env.CORS_ORIGIN2?.split(",") ?? []),
 ]
-  .map((o) => o.trim())
+  .map((o) => o.trim().replace(/\/+$/, ""))
   .filter(Boolean);
 
 app.use(
@@ -31,6 +31,7 @@ app.use(
   }),
 );
 app.use(express.json());
+
 app.get("/", (req, res) => {
   res.json({ message: "mini-hcm API is running" });
 });
@@ -43,15 +44,18 @@ app.use("/api/users", usersRouter);
 app.use("/api/attendance", attendanceRouter);
 app.use("/api/summary", summaryRouter);
 app.use("/api/admin", adminRouter);
+
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({ error: "Internal server error" });
 });
-// Local dev only — Vercel ignores app.listen() in serverless mode
-if (process.env.NODE_ENV !== "production") {
+
+if (!process.env.VERCEL) {
   app.listen(port, () => {
     console.log(`mini-hcm API listening on http://localhost:${port}`);
   });
+} else {
+  console.log("mini-hcm API running in Vercel serverless mode");
 }
 
 export default app;

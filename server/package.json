@@ -5,7 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
-    "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider nodemon src/server.js",
+    "dev": "cross-env NODE_OPTIONS=--openssl-legacy-provider nodemon server.js",
     "start": "node src/server.js"
   },
   "keywords": [],
