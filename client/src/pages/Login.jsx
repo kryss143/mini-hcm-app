@@ -3,12 +3,14 @@ import { Link, Navigate } from "react-router-dom";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { useAuth } from "../AuthContext.jsx";
+import { z } from "zod";
 
 export default function Login() {
   const { user, profile, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+
   const AUTH_ERRORS = {
     // Sign in
     "auth/invalid-credential": "Incorrect email or password.",
@@ -27,11 +29,31 @@ export default function Login() {
     "auth/cancelled-popup-request": "Another sign-in popup is already open.",
   };
 
+  //Data validation implementation using Zod object z
+  const loginSchema = z.object({
+    email: z
+      .string()
+      .trim()
+      .min(1, "Email is required.")
+      .email("Please enter a valid email address."),
+    password: z.string().min(1, "Password is required."),
+  });
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
+    const result = loginSchema.safeParse({ email, password });
+
+    if (!result.success) {
+      setError(result.error.issues[0]?.message || "Please check your input.");
+      return;
+    }
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      await signInWithEmailAndPassword(
+        auth,
+        result.data.email,
+        result.data.password,
+      );
     } catch (err) {
       if (
         err.status === 502 ||
@@ -41,10 +63,12 @@ export default function Login() {
         setError("Server is unreachable. Please try again later.");
         return;
       }
+
       setError(AUTH_ERRORS[err.code] || "Login failed. Please try again.");
     }
   }
 
+  //This code snippet will clear auth error message in 5 seconds after showing
   useEffect(() => {
     if (!error) return;
     const t = setTimeout(() => setError(""), 5000);
@@ -68,7 +92,7 @@ export default function Login() {
           />
         </div>
         <h2 className="flex justify-center">Sign in</h2>
-        <form onSubmit={onSubmit} className="stack">
+        <form onSubmit={onSubmit} className="stack" noValidate>
           <div className="field">
             <label htmlFor="email">Email</label>
             <input
@@ -76,7 +100,6 @@ export default function Login() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
           </div>
           <div className="field">
@@ -86,7 +109,6 @@ export default function Login() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              required
             />
           </div>
           {error && <p className="error">{error}</p>}

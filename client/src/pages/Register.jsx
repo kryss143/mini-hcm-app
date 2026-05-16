@@ -3,6 +3,7 @@ import { Link, Navigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { useAuth } from "../AuthContext.jsx";
+import { z } from "zod";
 
 export default function Register() {
   const { user, profile, loading } = useAuth();
@@ -28,11 +29,34 @@ export default function Register() {
     "auth/cancelled-popup-request": "Another sign-in popup is already open.",
   };
 
+  const registerSchema = z.object({
+    email: z
+      .string()
+      .trim()
+      .min(1, "Email is required.")
+      .email("Please enter a valid email address."),
+    password: z
+      .string()
+      .min(1, "Password is required.")
+      .min(6, "Password must be at least 6 characters."),
+  });
+
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
+    const result = registerSchema.safeParse({ email, password });
+
+    if (!result.success) {
+      setError(result.error.issues[0]?.message || "Please check your input.");
+      return;
+    }
+
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      await createUserWithEmailAndPassword(
+        auth,
+        result.data.email,
+        result.data.password,
+      );
     } catch (err) {
       if (
         err.status === 502 ||
@@ -42,6 +66,7 @@ export default function Register() {
         setError("Server is unreachable. Please try again later.");
         return;
       }
+
       setError(
         AUTH_ERRORS[err.code] || "Registration failed. Please try again.",
       );
@@ -69,7 +94,7 @@ export default function Register() {
           />
         </div>
         <h2 className="flex justify-center">Create account</h2>
-        <form onSubmit={onSubmit} className="stack">
+        <form onSubmit={onSubmit} className="stack" noValidate>
           <div className="field">
             <label htmlFor="email">Email</label>
             <input
@@ -77,7 +102,6 @@ export default function Register() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
           </div>
           <div className="field">
@@ -87,8 +111,6 @@ export default function Register() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              minLength={6}
-              required
             />
           </div>
           {error && <p className="error">{error}</p>}
