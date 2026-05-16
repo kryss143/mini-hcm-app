@@ -21,6 +21,8 @@ export default function Login() {
 
   if (loading) return <div className="app-shell">Loading…</div>;
   if (user && profile) return <Navigate to="/" replace />;
+  if (user && profile === undefined)
+    return <div className="app-shell">Loading…</div>;
   if (user && profile === null) return <Navigate to="/setup" replace />;
   return (
     <div className="app-shell" style={{ maxWidth: 420 }}>
