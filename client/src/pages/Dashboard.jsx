@@ -39,11 +39,25 @@ export default function Dashboard() {
       });
       await load();
     } catch (e) {
+      if (e.status === 401 || e.code === "auth/token-expired") {
+        await logout();
+        return;
+      }
       setError(e.message);
     } finally {
       setBusy(false);
     }
   }
+
+  useEffect(() => {
+    load().catch((e) => {
+      if (e.status === 401 || e.code === "auth/token-expired") {
+        logout();
+        return;
+      }
+      setError(e.message);
+    });
+  }, [load]);
 
   const s = summary || {};
   const last = punches[0];

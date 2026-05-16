@@ -4,7 +4,6 @@ const prodBase = import.meta.env.VITE_API_PROD_BASE || "";
 const base = import.meta.env.PROD ? prodBase : devBase;
 
 export async function api(path, options = {}) {
-  console.log(base);
   const { token, ...rest } = options;
   const headers = {
     "Content-Type": "application/json",
@@ -23,6 +22,9 @@ export async function api(path, options = {}) {
     const err = new Error(data.error || res.statusText);
     err.status = res.status;
     err.data = data;
+    if (res.status === 401) err.code = "auth/token-expired";
+    if (res.status === 502 || err.message?.includes("Bad Gateway"))
+      err.code = "network/bad-gateway";
     throw err;
   }
   return data;

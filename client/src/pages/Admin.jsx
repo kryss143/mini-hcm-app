@@ -31,6 +31,18 @@ const selectCls =
   "bg-slate-800 text-white border border-gray-600 rounded px-2 py-1 text-sm";
 const thStyle = { cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" };
 
+function handleApiError(e, logout, setError) {
+  if (e.status === 401 || e.code === "auth/token-expired") {
+    logout();
+    return;
+  }
+  if (e.code === "network/bad-gateway") {
+    setError("Server is unreachable. Please try again later.");
+    return;
+  }
+  setError(e.message);
+}
+
 function useSortFilter(rows, fields, userMap, roleMap) {
   const [sortCol, setSortCol] = useState(fields[0].key);
   const [sortDir, setSortDir] = useState("asc");
@@ -76,7 +88,7 @@ function useSortFilter(rows, fields, userMap, roleMap) {
 }
 
 export default function Admin() {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const [tab, setTab] = useState("punches");
   const [attendance, setAttendance] = useState([]);
   const [users, setUsers] = useState([]);
@@ -240,8 +252,8 @@ export default function Admin() {
     if (!token) return;
     api("/api/admin/users", { token })
       .then((r) => setUsers(r.users || []))
-      .catch((e) => setError(e.message));
-    reloadPunches().catch((e) => setError(e.message));
+      .catch((e) => handleApiError(e, logout, setError));
+    reloadPunches().catch((e) => handleApiError(e, logout, setError));
   }, [token]);
 
   async function loadDaily() {
@@ -253,7 +265,7 @@ export default function Admin() {
       );
       setDailyRows(r.summaries || []);
     } catch (e) {
-      setError(e.message);
+      handleApiError(e, logout, setError);
     }
   }
 
@@ -266,7 +278,7 @@ export default function Admin() {
       );
       setWeekly(r);
     } catch (e) {
-      setError(e.message);
+      handleApiError(e, logout, setError);
     }
   }
 
@@ -281,7 +293,7 @@ export default function Admin() {
       });
       await reloadPunches();
     } catch (e) {
-      setError(e.message);
+      handleApiError(e, logout, setError);
     }
   }
 
@@ -292,11 +304,10 @@ export default function Admin() {
       await api(`/api/admin/attendance/${id}`, { method: "DELETE", token });
       await reloadPunches();
     } catch (e) {
-      setError(e.message);
+      handleApiError(e, logout, setError);
     }
   }
 
-  // Reusable filter bar
   function FilterBar({ hook, userOptions, onClear }) {
     return (
       <div
@@ -365,6 +376,23 @@ export default function Admin() {
       </div>
     );
   }
+
+  const rolePill = (uid) => (
+    <span
+      style={{
+        fontSize: "0.78rem",
+        padding: "2px 8px",
+        borderRadius: "999px",
+        background:
+          roleMap[uid] === "admin"
+            ? "rgba(99,102,241,0.2)"
+            : "rgba(34,197,94,0.15)",
+        color: roleMap[uid] === "admin" ? "#a5b4fc" : "#86efac",
+      }}
+    >
+      {roleMap[uid] || "—"}
+    </span>
+  );
 
   return (
     <div className="stack">
@@ -457,25 +485,7 @@ export default function Admin() {
                         {row.userId}
                       </span>
                     </td>
-                    <td>
-                      <span
-                        style={{
-                          fontSize: "0.78rem",
-                          padding: "2px 8px",
-                          borderRadius: "999px",
-                          background:
-                            roleMap[row.userId] === "admin"
-                              ? "rgba(99,102,241,0.2)"
-                              : "rgba(34,197,94,0.15)",
-                          color:
-                            roleMap[row.userId] === "admin"
-                              ? "#a5b4fc"
-                              : "#86efac",
-                        }}
-                      >
-                        {roleMap[row.userId] || "—"}
-                      </span>
-                    </td>
+                    <td>{rolePill(row.userId)}</td>
                     <td>
                       <select
                         defaultValue={row.type}
@@ -601,23 +611,7 @@ export default function Admin() {
               {daily.sorted.map((r) => (
                 <tr key={r.id}>
                   <td>{displayName(r.userId)}</td>
-                  <td>
-                    <span
-                      style={{
-                        fontSize: "0.78rem",
-                        padding: "2px 8px",
-                        borderRadius: "999px",
-                        background:
-                          roleMap[r.userId] === "admin"
-                            ? "rgba(99,102,241,0.2)"
-                            : "rgba(34,197,94,0.15)",
-                        color:
-                          roleMap[r.userId] === "admin" ? "#a5b4fc" : "#86efac",
-                      }}
-                    >
-                      {roleMap[r.userId] || "—"}
-                    </span>
-                  </td>
+                  <td>{rolePill(r.userId)}</td>
                   <td>{r.regularHours}</td>
                   <td>{r.overtimeHours}</td>
                   <td>{r.nightDifferentialHours}</td>
@@ -679,29 +673,13 @@ export default function Admin() {
                       }}
                     >
                       <strong>{displayName(emp.userId)}</strong>
-                      <span
-                        style={{
-                          fontSize: "0.78rem",
-                          padding: "2px 8px",
-                          borderRadius: "999px",
-                          background:
-                            roleMap[emp.userId] === "admin"
-                              ? "rgba(99,102,241,0.2)"
-                              : "rgba(34,197,94,0.15)",
-                          color:
-                            roleMap[emp.userId] === "admin"
-                              ? "#a5b4fc"
-                              : "#86efac",
-                        }}
-                      >
-                        {roleMap[emp.userId] || "—"}
-                      </span>
+                      {rolePill(emp.userId)}
                     </div>
                     <div className="grid-kpi">
                       <div className="kpi">
                         <label>Regular</label>
                         <strong>
-                          {Number(emp.totals.regularHours || 0).toFixed(2)}
+                          {Number(emp.totals.regularHours || 0).toFixed(2)}h
                         </strong>
                       </div>
                       <div className="kpi">

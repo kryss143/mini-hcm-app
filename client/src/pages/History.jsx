@@ -3,14 +3,25 @@ import { useAuth } from "../AuthContext.jsx";
 import { api } from "../api.js";
 
 export default function History() {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
+
   useEffect(() => {
     if (!token) return;
     api("/api/summary/history?limit=60", { token })
       .then((r) => setRows(r.summaries || []))
-      .catch((e) => setError(e.message));
+      .catch((e) => {
+        if (e.status === 401 || e.code === "auth/token-expired") {
+          logout();
+          return;
+        }
+        if (e.code === "network/bad-gateway") {
+          setError("Server is unreachable. Please try again later.");
+          return;
+        }
+        setError(e.message);
+      });
   }, [token]);
 
   return (
