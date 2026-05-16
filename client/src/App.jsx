@@ -32,7 +32,7 @@ function Shell({ children }) {
   if (!user) return children;
   return (
     <div className="app-shell">
-      <header className="backdrop-blur-3xl backdrop-brightness-130 border border-gray-600 text-white px-4 py-3 rounded-2xl flex items-center justify-between mb-5">
+      <header className="border border-gray-600 text-white px-4 py-3 rounded-2xl flex items-center justify-between mb-5 font-semibold text-xl bg-linear-to-br from-[#ffffff0f] to-[#ffffff05] backdrop-blur-3xl">
         <div className="brand">
           <img
             src="icons/mini-hcm-navbar-logo.svg"
@@ -96,14 +96,15 @@ function Shell({ children }) {
           </button>
 
           <div
-            className={`origin-top-right absolute right-0 mt-2 w-44 bg-slate-800 text-white rounded shadow-lg ring-1 ring-black/5 transform transition-all duration-150 ${open ? "opacity-100 scale-100 z-1" : "opacity-0 scale-95 pointer-events-none"}`}
+            className={`z-50 origin-top-right absolute right-0 mt-2 w-44 overflow-hidden rounded shadow-lg ring-1 ring-black/5 border border-gray-600 transform transition-all duration-150 font-semibold text-xl bg-linear-to-br from-[#03043dd0] to-[#02000ad3] backdrop-blur-3xl
+    ${open ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"}`}
           >
             <NavLink
               to="/"
               end
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `block px-4 py-2 ${isActive ? "bg-slate-100" : "hover:bg-slate-50"}`
+                `block px-1 py-3 ${isActive ? "bg-slate-700" : "hover:bg-slate-700"}`
               }
             >
               Dashboard
@@ -112,7 +113,7 @@ function Shell({ children }) {
               to="/history"
               onClick={() => setOpen(false)}
               className={({ isActive }) =>
-                `block px-4 py-2 ${isActive ? "bg-slate-100" : "hover:bg-slate-50"}`
+                `block px-1 py-3 ${isActive ? "bg-slate-700" : "hover:bg-slate-700"}`
               }
             >
               History
@@ -122,7 +123,7 @@ function Shell({ children }) {
                 to="/admin"
                 onClick={() => setOpen(false)}
                 className={({ isActive }) =>
-                  `block px-4 py-2 ${isActive ? "bg-slate-100" : "hover:bg-slate-50"}`
+                  `block px-1 py-3 ${isActive ? "bg-slate-700" : "hover:bg-slate-700"}`
                 }
               >
                 Admin
@@ -133,7 +134,7 @@ function Shell({ children }) {
                 setOpen(false);
                 logout();
               }}
-              className="w-full text-left px-4 py-2 hover:bg-slate-50"
+              className="w-full text-left px-1 py-3 hover:bg-slate-700"
             >
               Sign out
             </button>

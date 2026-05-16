@@ -38,6 +38,10 @@ a {
   margin: 0 auto;
   padding: 1.5rem 1.25rem 3rem;
 }
+select option {
+  background-color: #1e293b; /* slate-800 */
+  color: #ffffff;
+}
 .top-nav {
   display: flex;
   align-items: center;
@@ -82,7 +86,7 @@ a {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 1.25rem 1.35rem;
-  backdrop-filter: blur(10px);
+  /* backdrop-filter: blur(10px); */
 }
 .card h2 {
   margin: 0 0 0.75rem;
