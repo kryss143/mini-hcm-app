@@ -19,6 +19,7 @@ export function AuthProvider({ children }) {
         setLoading(false);
         return;
       }
+      setProfile(undefined);
       const t = await u.getIdToken();
       setToken(t);
       try {
