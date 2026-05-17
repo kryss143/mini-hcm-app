@@ -110,6 +110,10 @@ export default function Admin() {
   const [dailyRows, setDailyRows] = useState([]);
   const [weekly, setWeekly] = useState(null);
   const [error, setError] = useState("");
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [loadingPunches, setLoadingPunches] = useState(false);
+  const [loadingDaily, setLoadingDaily] = useState(false);
+  const [loadingWeekly, setLoadingWeekly] = useState(false);
 
   const userMap = Object.fromEntries(
     users.map((u) => [u.id, u.name || u.email || u.id]),
@@ -225,20 +229,32 @@ export default function Admin() {
   const weeklyPagination = usePagination(weeklySort.sorted, 5); // ← pagination
 
   async function reloadPunches() {
-    const r = await api("/api/admin/attendance?limit=300", { token });
-    setAttendance(r.attendance || []);
+    setLoadingPunches(true);
+
+    try {
+      const r = await api("/api/admin/attendance?limit=300", { token });
+      setAttendance(r.attendance || []);
+    } finally {
+      setLoadingPunches(false);
+    }
   }
 
   useEffect(() => {
     if (!token) return;
+
+    setLoadingUsers(true);
     api("/api/admin/users", { token })
       .then((r) => setUsers(r.users || []))
-      .catch((e) => handleApiError(e, logout, setError));
+      .catch((e) => handleApiError(e, logout, setError))
+      .finally(() => setLoadingUsers(false));
+
     reloadPunches().catch((e) => handleApiError(e, logout, setError));
   }, [token]);
 
   async function loadDaily() {
     setError("");
+    setLoadingDaily(true);
+
     try {
       const r = await api(
         `/api/admin/reports/daily?date=${encodeURIComponent(dailyDate)}`,
@@ -247,11 +263,15 @@ export default function Admin() {
       setDailyRows(r.summaries || []);
     } catch (e) {
       handleApiError(e, logout, setError);
+    } finally {
+      setLoadingDaily(false);
     }
   }
 
   async function loadWeekly() {
     setError("");
+    setLoadingWeekly(true);
+
     try {
       const r = await api(
         `/api/admin/reports/weekly?weekStart=${encodeURIComponent(weekStart)}`,
@@ -260,6 +280,8 @@ export default function Admin() {
       setWeekly(r);
     } catch (e) {
       handleApiError(e, logout, setError);
+    } finally {
+      setLoadingWeekly(false);
     }
   }
 
@@ -445,7 +467,20 @@ export default function Admin() {
                 </tr>
               </thead>
               <tbody>
-                {punchPagination.paged.length === 0 && (
+                {loadingPunches ? (
+                  <tr>
+                    <td
+                      colSpan={5}
+                      style={{
+                        textAlign: "center",
+                        color: "var(--muted)",
+                        padding: "1.5rem",
+                      }}
+                    >
+                      Loading punches…
+                    </td>
+                  </tr>
+                ) : punchPagination.paged.length === 0 ? (
                   <tr>
                     <td
                       colSpan={5}
@@ -458,6 +493,12 @@ export default function Admin() {
                       No punches match the selected filters.
                     </td>
                   </tr>
+                ) : (
+                  punchPagination.paged.map((row) => (
+                    <tr key={row.id}>
+                      {/* keep your existing row cells here */}
+                    </tr>
+                  ))
                 )}
                 {punchPagination.paged.map(
                   (
@@ -526,26 +567,37 @@ export default function Admin() {
             totalPages={punchPagination.totalPages}
             onPageChange={punchPagination.setPage}
           />
-          <p
-            style={{ color: "var(--muted)", fontSize: "0.85rem" }}
-            className="mt-2"
-          >
-            Employee/s:{" "}
-            {users
-              .filter((u) => u.role === "employee")
-              .map((u) => u.name || u.id)
-              .join(", ")}
-          </p>
-          <p
-            style={{ color: "var(--muted)", fontSize: "0.85rem" }}
-            className="mt-2"
-          >
-            Admin/s:{" "}
-            {users
-              .filter((u) => u.role === "admin")
-              .map((u) => u.name || u.id)
-              .join(", ")}
-          </p>
+          {loadingUsers ? (
+            <p
+              style={{ color: "var(--muted)", fontSize: "0.85rem" }}
+              className="mt-2"
+            >
+              Loading users…
+            </p>
+          ) : (
+            <>
+              <p
+                style={{ color: "var(--muted)", fontSize: "0.85rem" }}
+                className="mt-2"
+              >
+                Employee/s:{" "}
+                {users
+                  .filter((u) => u.role === "employee")
+                  .map((u) => u.name || u.id)
+                  .join(", ")}
+              </p>
+              <p
+                style={{ color: "var(--muted)", fontSize: "0.85rem" }}
+                className="mt-2"
+              >
+                Admin/s:{" "}
+                {users
+                  .filter((u) => u.role === "admin")
+                  .map((u) => u.name || u.id)
+                  .join(", ")}
+              </p>
+            </>
+          )}
         </div>
       )}
 
@@ -594,7 +646,20 @@ export default function Admin() {
               </tr>
             </thead>
             <tbody>
-              {dailyPagination.paged.length === 0 && (
+              {loadingDaily ? (
+                <tr>
+                  <td
+                    colSpan={dailyFields.length}
+                    style={{
+                      textAlign: "center",
+                      color: "var(--muted)",
+                      padding: "1.5rem",
+                    }}
+                  >
+                    Loading daily report…
+                  </td>
+                </tr>
+              ) : dailyPagination.paged.length === 0 ? (
                 <tr>
                   <td
                     colSpan={dailyFields.length}
@@ -607,6 +672,18 @@ export default function Admin() {
                     No data for this day.
                   </td>
                 </tr>
+              ) : (
+                dailyPagination.paged.map((r) => (
+                  <tr key={r.id}>
+                    <td>{displayName(r.userId)}</td>
+                    <td>{rolePill(r.userId)}</td>
+                    <td>{r.regularHours}</td>
+                    <td>{r.overtimeHours}</td>
+                    <td>{r.nightDifferentialHours}</td>
+                    <td>{r.lateMinutes}</td>
+                    <td>{r.undertimeMinutes}</td>
+                  </tr>
+                ))
               )}
               {dailyPagination.paged.map(
                 (
@@ -662,10 +739,24 @@ export default function Admin() {
                 }}
               />
               <div className="stack">
-                {weeklyPagination.paged.length === 0 && (
+                {loadingWeekly ? (
+                  <p style={{ color: "var(--muted)" }}>
+                    Loading weekly report…
+                  </p>
+                ) : weeklyPagination.paged.length === 0 ? (
                   <p style={{ color: "var(--muted)" }}>
                     No data matches the selected filters.
                   </p>
+                ) : (
+                  weeklyPagination.paged.map((emp) => (
+                    <div
+                      key={emp.userId}
+                      className="card"
+                      style={{ background: "rgba(0,0,0,0.2)" }}
+                    >
+                      {/* keep your existing weekly employee card content here */}
+                    </div>
+                  ))
                 )}
                 {weeklyPagination.paged.map(
                   (
