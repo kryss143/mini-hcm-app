@@ -75,10 +75,33 @@ export default function Login() {
     return () => clearTimeout(t);
   }, [error]);
 
-  if (loading) return <div className="app-shell">Loading…</div>;
+  if (loading)
+    return (
+      <section class="dots-container">
+        <div class="dots-row">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <p class="loadlabel">Loading...</p>
+      </section>
+    );
   if (user && profile) return <Navigate to="/" replace />;
   if (user && profile === undefined)
-    return <div className="app-shell">Loading…</div>;
+    return (
+      <section class="dots-container">
+        <div class="dots-row">
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+        </div>
+        <p class="loadlabel">Loading user credentials...</p>
+      </section>
+    );
   if (user && profile === null) return <Navigate to="/setup" replace />;
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
