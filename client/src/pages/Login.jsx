@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { useAuth } from "../AuthContext.jsx";
 import { z } from "zod";
+import LoadingScreen from "../components/LoadingScreen.jsx";
 
 export default function Login() {
   const { user, profile, loading } = useAuth();
@@ -12,7 +13,6 @@ export default function Login() {
   const [error, setError] = useState("");
 
   const AUTH_ERRORS = {
-    // Sign in
     "auth/invalid-credential": "Incorrect email or password.",
     "auth/user-not-found": "No account found with this email.",
     "auth/wrong-password": "Incorrect password.",
@@ -20,16 +20,13 @@ export default function Login() {
     "auth/user-disabled": "This account has been disabled.",
     "auth/too-many-requests": "Too many attempts. Please try again later.",
     "auth/network-request-failed": "Network error. Check your connection.",
-    // Registration
     "auth/email-already-in-use": "This email is already registered.",
     "auth/weak-password": "Password must be at least 6 characters.",
-    // Session / OAuth
     "auth/requires-recent-login": "Please sign in again to continue.",
     "auth/popup-closed-by-user": "Sign-in popup was closed before completing.",
     "auth/cancelled-popup-request": "Another sign-in popup is already open.",
   };
 
-  //Data validation implementation using Zod object z
   const loginSchema = z.object({
     email: z
       .string()
@@ -38,6 +35,7 @@ export default function Login() {
       .email("Please enter a valid email address."),
     password: z.string().min(1, "Password is required."),
   });
+
   async function onSubmit(e) {
     e.preventDefault();
     setError("");
@@ -63,48 +61,23 @@ export default function Login() {
         setError("Server is unreachable. Please try again later.");
         return;
       }
-
       setError(AUTH_ERRORS[err.code] || "Login failed. Please try again.");
     }
   }
 
-  //This code snippet will clear auth error message in 5 seconds after showing
   useEffect(() => {
     if (!error) return;
     const t = setTimeout(() => setError(""), 5000);
     return () => clearTimeout(t);
   }, [error]);
 
-  if (loading) {
-    return (
-      <section className="dots-container">
-        <div className="dots-row">
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-        </div>
-        <p className="loadlabel">Loading...</p>
-      </section>
-    );
-  }
+  // ↓ All loading scenarios now use the animated dots
+  if (loading) return <LoadingScreen message="Loading..." />;
+  if (user && profile === undefined)
+    return <LoadingScreen message="Loading user credentials..." />;
   if (user && profile) return <Navigate to="/" replace />;
-  if (user && profile === undefined) {
-    return (
-      <section className="dots-container">
-        <div className="dots-row">
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-          <div className="dot"></div>
-        </div>
-        <p className="loadlabel">Loading user credentials...</p>
-      </section>
-    );
-  }
   if (user && profile === null) return <Navigate to="/setup" replace />;
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="card w-full" style={{ maxWidth: 420 }}>

@@ -2,8 +2,10 @@ import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "./firebase.js";
 import { api } from "./api.js";
+import LoadingScreen from "./components/LoadingScreen.jsx";
 
 const AuthCtx = createContext(null);
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
@@ -32,6 +34,7 @@ export function AuthProvider({ children }) {
       setLoading(false);
     });
   }, []);
+
   const value = useMemo(
     () => ({
       user,
@@ -53,6 +56,10 @@ export function AuthProvider({ children }) {
     }),
     [user, token, profile, loading],
   );
+
+  // ↓ Blocks the entire app with the loading screen on session restore
+  if (loading) return <LoadingScreen message="Restoring session..." />;
+
   return <AuthCtx.Provider value={value}>{children}</AuthCtx.Provider>;
 }
 

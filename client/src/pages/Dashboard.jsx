@@ -2,9 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "../AuthContext.jsx";
 import { api } from "../api.js";
 
+// Helper to get today's date in YYYY-MM-DD format
+function getTodayKey() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
 export default function Dashboard() {
   const { token, profile } = useAuth();
-  const [dateKey, setDateKey] = useState("");
+  const [dateKey, setDateKey] = useState(getTodayKey);
   const [summary, setSummary] = useState(null);
   const [punches, setPunches] = useState([]);
   const [busy, setBusy] = useState(false);
