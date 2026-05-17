@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { useAuth } from "../AuthContext.jsx";
 import { z } from "zod";
+import "./App.css";
 
 export default function Login() {
   const { user, profile, loading } = useAuth();
@@ -77,30 +78,30 @@ export default function Login() {
 
   if (loading) {
     return (
-      <section class="dots-container">
-        <div class="dots-row">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
+      <section className="dots-container">
+        <div className="dots-row">
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
         </div>
-        <p class="loadlabel">Loading...</p>
+        <p className="loadlabel">Loading...</p>
       </section>
     );
   }
   if (user && profile) return <Navigate to="/" replace />;
   if (user && profile === undefined) {
     return (
-      <section class="dots-container">
-        <div class="dots-row">
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
-          <div class="dot"></div>
+      <section className="dots-container">
+        <div className="dots-row">
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
+          <div className="dot"></div>
         </div>
-        <p class="loadlabel">Loading user credentials...</p>
+        <p className="loadlabel">Loading user credentials...</p>
       </section>
     );
   }
