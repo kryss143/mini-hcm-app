@@ -4,7 +4,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase.js";
 import { useAuth } from "../AuthContext.jsx";
 import { z } from "zod";
-import "./App.css";
+import "./src/App.css";
 
 export default function Login() {
   const { user, profile, loading } = useAuth();
