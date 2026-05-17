@@ -75,7 +75,7 @@ export default function Login() {
     return () => clearTimeout(t);
   }, [error]);
 
-  if (loading)
+  if (loading) {
     return (
       <section class="dots-container">
         <div class="dots-row">
@@ -88,6 +88,7 @@ export default function Login() {
         <p class="loadlabel">Loading...</p>
       </section>
     );
+  }
   if (user && profile) return <Navigate to="/" replace />;
   if (user && profile === undefined)
     return (
