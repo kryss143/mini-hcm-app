@@ -92,16 +92,19 @@ VITE_FIREBASE_PROJECT_ID=
 VITE_FIREBASE_STORAGE_BUCKET=
 VITE_FIREBASE_MESSAGING_SENDER_ID=
 VITE_FIREBASE_APP_ID=
-VITE_API_BASE=              # leave empty locally (Vite proxies /api to port 4000)
+VITE_FIREBASE_MEASUREMENT_ID= 
+VITE_API_BASE=              # leave empty locally (Vite proxies /api to specific port)
 VITE_API_PROD_BASE=         # set to your production API URL
 ```
 
 **`server/.env`**
 
 ```env
+PORT=                             # dev test linked to vite config
 GOOGLE_APPLICATION_CREDENTIALS=   # path to service account JSON (local)
 FIREBASE_SERVICE_ACCOUNT_JSON=    # stringified JSON (for hosted APIs)
-CORS_ORIGIN=                       # allowed frontend origin
+CORS_ORIGIN=                       # allowed frontend origin for development testing
+CORS_ORIGIN2=                      # allowed frontend origin
 ADMIN_SETUP_SECRET=                # optional: secret for admin profile setup
 ```
 
