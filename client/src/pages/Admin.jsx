@@ -1,6 +1,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "../AuthContext.jsx";
 import { api } from "../api.js";
+import Pagination from "../components/Pagination.jsx";
+import usePagination from "../hooks/usePagination.js";
 
 function fmt(ts) {
   if (!ts) return "";
@@ -47,7 +49,7 @@ function useSortFilter(rows, fields, userMap, roleMap) {
   const [sortCol, setSortCol] = useState(fields[0].key);
   const [sortDir, setSortDir] = useState("asc");
   const [filterRole, setFilterRole] = useState("all");
-  const [filterUser, setFilterUser] = useState("all");
+  const [filterUser, setFilterUser] = useState("");
 
   function toggleSort(col) {
     if (sortCol === col) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
@@ -60,15 +62,22 @@ function useSortFilter(rows, fields, userMap, roleMap) {
   const sorted = useMemo(() => {
     return [...rows]
       .filter((row) => {
-        if (filterRole !== "all" && roleMap[row.userId] !== filterRole)
+        if (filterRole !== "all" && roleMap[row.userId] !== filterRole) {
           return false;
-        if (filterUser !== "all" && row.userId !== filterUser) return false;
-        return true;
+        }
+
+        const userSearch = filterUser.trim().toLowerCase();
+        if (!userSearch) return true;
+
+        const userText =
+          `${userMap[row.userId] || ""} ${row.userId}`.toLowerCase();
+        return userText.includes(userSearch);
       })
       .sort((a, b) => {
         const field = fields.find((f) => f.key === sortCol);
         const valA = field?.getValue(a, userMap, roleMap) ?? "";
         const valB = field?.getValue(b, userMap, roleMap) ?? "";
+
         if (valA < valB) return sortDir === "asc" ? -1 : 1;
         if (valA > valB) return sortDir === "asc" ? 1 : -1;
         return 0;
@@ -133,16 +142,7 @@ export default function Admin() {
     },
   ];
   const punch = useSortFilter(attendance, punchFields, userMap, roleMap);
-  const punchUserOptions = useMemo(
-    () =>
-      users
-        .filter(
-          (u) => punch.filterRole === "all" || u.role === punch.filterRole,
-        )
-        .map((u) => ({ id: u.id, name: u.name || u.email || u.id }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [users, punch.filterRole],
-  );
+  const punchPagination = usePagination(punch.sorted, 5); // ← pagination
 
   // ── Daily sort/filter ────────────────────────────────────────────
   const dailyFields = [
@@ -175,16 +175,7 @@ export default function Admin() {
     },
   ];
   const daily = useSortFilter(dailyRows, dailyFields, userMap, roleMap);
-  const dailyUserOptions = useMemo(
-    () =>
-      users
-        .filter(
-          (u) => daily.filterRole === "all" || u.role === daily.filterRole,
-        )
-        .map((u) => ({ id: u.id, name: u.name || u.email || u.id }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [users, daily.filterRole],
-  );
+  const dailyPagination = usePagination(daily.sorted, 5); // ← pagination
 
   // ── Weekly sort/filter ───────────────────────────────────────────
   const weeklyFields = [
@@ -231,17 +222,7 @@ export default function Admin() {
     userMap,
     roleMap,
   );
-  const weeklyUserOptions = useMemo(
-    () =>
-      users
-        .filter(
-          (u) =>
-            weeklySort.filterRole === "all" || u.role === weeklySort.filterRole,
-        )
-        .map((u) => ({ id: u.id, name: u.name || u.email || u.id }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [users, weeklySort.filterRole],
-  );
+  const weeklyPagination = usePagination(weeklySort.sorted, 5); // ← pagination
 
   async function reloadPunches() {
     const r = await api("/api/admin/attendance?limit=300", { token });
@@ -308,7 +289,7 @@ export default function Admin() {
     }
   }
 
-  function FilterBar({ hook, userOptions, onClear }) {
+  function FilterBar({ hook, onClear }) {
     return (
       <div
         className="row-actions"
@@ -329,7 +310,7 @@ export default function Admin() {
             value={hook.filterRole}
             onChange={(e) => {
               hook.setFilterRole(e.target.value);
-              hook.setFilterUser("all");
+              hook.setFilterUser("");
             }}
           >
             <option value="all">All</option>
@@ -340,6 +321,7 @@ export default function Admin() {
             ))}
           </select>
         </label>
+
         <label
           style={{
             display: "flex",
@@ -350,20 +332,16 @@ export default function Admin() {
           }}
         >
           User
-          <select
+          <input
             className={selectCls}
+            type="text"
             value={hook.filterUser}
+            placeholder="Search user"
             onChange={(e) => hook.setFilterUser(e.target.value)}
-          >
-            <option value="all">All</option>
-            {userOptions.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name}
-              </option>
-            ))}
-          </select>
+          />
         </label>
-        {(hook.filterRole !== "all" || hook.filterUser !== "all") && (
+
+        {(hook.filterRole !== "all" || hook.filterUser.trim()) && (
           <button
             type="button"
             className="btn btn-ghost"
@@ -425,13 +403,24 @@ export default function Admin() {
             style={{ marginBottom: "0.75rem", flexWrap: "wrap" }}
           >
             <h2 style={{ margin: 0, flex: 1 }}>All punches</h2>
+            <span
+              style={{
+                color: "var(--muted)",
+                fontSize: "0.85rem",
+                alignSelf: "center",
+              }}
+            >
+              <p className="text-lg">
+                {punch.sorted.length} record
+                {punch.sorted.length !== 1 ? "s" : ""}
+              </p>
+            </span>
           </div>
           <FilterBar
             hook={punch}
-            userOptions={punchUserOptions}
             onClear={() => {
               punch.setFilterRole("all");
-              punch.setFilterUser("all");
+              punch.setFilterUser("");
             }}
           />
           <div style={{ overflowX: "auto" }}>
@@ -456,7 +445,7 @@ export default function Admin() {
                 </tr>
               </thead>
               <tbody>
-                {punch.sorted.length === 0 && (
+                {punchPagination.paged.length === 0 && (
                   <tr>
                     <td
                       colSpan={5}
@@ -470,61 +459,73 @@ export default function Admin() {
                     </td>
                   </tr>
                 )}
-                {punch.sorted.map((row) => (
-                  <tr key={row.id}>
-                    <td>
-                      <span>{displayName(row.userId)}</span>
-                      <span
-                        style={{
-                          display: "block",
-                          fontSize: "0.72rem",
-                          color: "var(--muted)",
-                          marginTop: 2,
-                        }}
-                      >
-                        {row.userId}
-                      </span>
-                    </td>
-                    <td>{rolePill(row.userId)}</td>
-                    <td>
-                      <select
-                        defaultValue={row.type}
-                        onChange={(e) => (row.type = e.target.value)}
-                      >
-                        <option value="in">in</option>
-                        <option value="out">out</option>
-                      </select>
-                    </td>
-                    <td>
-                      <input
-                        type="datetime-local"
-                        defaultValue={fmt(row.timestamp)}
-                        onChange={(e) =>
-                          (row.editTs = new Date(e.target.value).toISOString())
-                        }
-                      />
-                    </td>
-                    <td className="space-x-3 space-y-3">
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        onClick={() => saveRow(row)}
-                      >
-                        Save
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        onClick={() => delRow(row.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {punchPagination.paged.map(
+                  (
+                    row, // ← use paged instead of sorted
+                  ) => (
+                    <tr key={row.id}>
+                      <td>
+                        <span>{displayName(row.userId)}</span>
+                        <span
+                          style={{
+                            display: "block",
+                            fontSize: "0.72rem",
+                            color: "var(--muted)",
+                            marginTop: 2,
+                          }}
+                        >
+                          {row.userId}
+                        </span>
+                      </td>
+                      <td>{rolePill(row.userId)}</td>
+                      <td>
+                        <select
+                          defaultValue={row.type}
+                          onChange={(e) => (row.type = e.target.value)}
+                        >
+                          <option value="in">in</option>
+                          <option value="out">out</option>
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="datetime-local"
+                          defaultValue={fmt(row.timestamp)}
+                          onChange={(e) =>
+                            (row.editTs = new Date(
+                              e.target.value,
+                            ).toISOString())
+                          }
+                        />
+                      </td>
+                      <td className="space-x-3 space-y-3">
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          onClick={() => saveRow(row)}
+                        >
+                          Save
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          onClick={() => delRow(row.id)}
+                        >
+                          Delete
+                        </button>
+                      </td>
+                    </tr>
+                  ),
+                )}
               </tbody>
             </table>
           </div>
+          {/* ← Pagination */}
+          <Pagination
+            page={punchPagination.page}
+            totalPages={punchPagination.totalPages}
+            onPageChange={punchPagination.setPage}
+          />
           <p
             style={{ color: "var(--muted)", fontSize: "0.85rem" }}
             className="mt-2"
@@ -568,10 +569,9 @@ export default function Admin() {
           </div>
           <FilterBar
             hook={daily}
-            userOptions={dailyUserOptions}
             onClear={() => {
               daily.setFilterRole("all");
-              daily.setFilterUser("all");
+              daily.setFilterUser("");
             }}
           />
           <table className="data">
@@ -594,7 +594,7 @@ export default function Admin() {
               </tr>
             </thead>
             <tbody>
-              {daily.sorted.length === 0 && (
+              {dailyPagination.paged.length === 0 && (
                 <tr>
                   <td
                     colSpan={dailyFields.length}
@@ -608,19 +608,29 @@ export default function Admin() {
                   </td>
                 </tr>
               )}
-              {daily.sorted.map((r) => (
-                <tr key={r.id}>
-                  <td>{displayName(r.userId)}</td>
-                  <td>{rolePill(r.userId)}</td>
-                  <td>{r.regularHours}</td>
-                  <td>{r.overtimeHours}</td>
-                  <td>{r.nightDifferentialHours}</td>
-                  <td>{r.lateMinutes}</td>
-                  <td>{r.undertimeMinutes}</td>
-                </tr>
-              ))}
+              {dailyPagination.paged.map(
+                (
+                  r, // ← use paged instead of sorted
+                ) => (
+                  <tr key={r.id}>
+                    <td>{displayName(r.userId)}</td>
+                    <td>{rolePill(r.userId)}</td>
+                    <td>{r.regularHours}</td>
+                    <td>{r.overtimeHours}</td>
+                    <td>{r.nightDifferentialHours}</td>
+                    <td>{r.lateMinutes}</td>
+                    <td>{r.undertimeMinutes}</td>
+                  </tr>
+                ),
+              )}
             </tbody>
           </table>
+          {/* ← Pagination */}
+          <Pagination
+            page={dailyPagination.page}
+            totalPages={dailyPagination.totalPages}
+            onPageChange={dailyPagination.setPage}
+          />
         </div>
       )}
 
@@ -646,69 +656,78 @@ export default function Admin() {
             <>
               <FilterBar
                 hook={weeklySort}
-                userOptions={weeklyUserOptions}
                 onClear={() => {
                   weeklySort.setFilterRole("all");
-                  weeklySort.setFilterUser("all");
+                  weeklySort.setFilterUser("");
                 }}
               />
               <div className="stack">
-                {weeklySort.sorted.length === 0 && (
+                {weeklyPagination.paged.length === 0 && (
                   <p style={{ color: "var(--muted)" }}>
                     No data matches the selected filters.
                   </p>
                 )}
-                {weeklySort.sorted.map((emp) => (
-                  <div
-                    key={emp.userId}
-                    className="card"
-                    style={{ background: "rgba(0,0,0,0.2)" }}
-                  >
+                {weeklyPagination.paged.map(
+                  (
+                    emp, // ← use paged instead of sorted
+                  ) => (
                     <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        marginBottom: 8,
-                      }}
+                      key={emp.userId}
+                      className="card"
+                      style={{ background: "rgba(0,0,0,0.2)" }}
                     >
-                      <strong>{displayName(emp.userId)}</strong>
-                      {rolePill(emp.userId)}
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 8,
+                          marginBottom: 8,
+                        }}
+                      >
+                        <strong>{displayName(emp.userId)}</strong>
+                        {rolePill(emp.userId)}
+                      </div>
+                      <div className="grid-kpi">
+                        <div className="kpi">
+                          <label>Regular</label>
+                          <strong>
+                            {Number(emp.totals.regularHours || 0).toFixed(2)}h
+                          </strong>
+                        </div>
+                        <div className="kpi">
+                          <label>OT</label>
+                          <strong>
+                            {Number(emp.totals.overtimeHours || 0).toFixed(2)}h
+                          </strong>
+                        </div>
+                        <div className="kpi">
+                          <label>ND</label>
+                          <strong>
+                            {Number(
+                              emp.totals.nightDifferentialHours || 0,
+                            ).toFixed(2)}
+                            h
+                          </strong>
+                        </div>
+                        <div className="kpi">
+                          <label>Late (m)</label>
+                          <strong>{emp.totals.lateMinutes}</strong>
+                        </div>
+                        <div className="kpi">
+                          <label>Undertime (m)</label>
+                          <strong>{emp.totals.undertimeMinutes}</strong>
+                        </div>
+                      </div>
                     </div>
-                    <div className="grid-kpi">
-                      <div className="kpi">
-                        <label>Regular</label>
-                        <strong>
-                          {Number(emp.totals.regularHours || 0).toFixed(2)}h
-                        </strong>
-                      </div>
-                      <div className="kpi">
-                        <label>OT</label>
-                        <strong>
-                          {Number(emp.totals.overtimeHours || 0).toFixed(2)}h
-                        </strong>
-                      </div>
-                      <div className="kpi">
-                        <label>ND</label>
-                        <strong>
-                          {Number(
-                            emp.totals.nightDifferentialHours || 0,
-                          ).toFixed(2)}
-                          h
-                        </strong>
-                      </div>
-                      <div className="kpi">
-                        <label>Late (m)</label>
-                        <strong>{emp.totals.lateMinutes}</strong>
-                      </div>
-                      <div className="kpi">
-                        <label>Undertime (m)</label>
-                        <strong>{emp.totals.undertimeMinutes}</strong>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  ),
+                )}
               </div>
+              {/* ← Pagination */}
+              <Pagination
+                page={weeklyPagination.page}
+                totalPages={weeklyPagination.totalPages}
+                onPageChange={weeklyPagination.setPage}
+              />
             </>
           )}
         </div>
