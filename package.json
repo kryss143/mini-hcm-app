@@ -10,7 +10,8 @@
     "dev": "concurrently \"npm run dev -w server\" \"npm run dev -w client\"",
     "build": "npm run build -w client",
     "start:server": "npm run start -w server",
-    "export:bundle": "node scripts/export-source-bundle.mjs"
+    "export:bundle": "node scripts/export-source-bundle.mjs",
+    "deploy": "cd client && npm run build && cd .. && firebase deploy"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
