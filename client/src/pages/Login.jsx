@@ -90,7 +90,7 @@ export default function Login() {
     );
   }
   if (user && profile) return <Navigate to="/" replace />;
-  if (user && profile === undefined)
+  if (user && profile === undefined) {
     return (
       <section class="dots-container">
         <div class="dots-row">
@@ -103,6 +103,7 @@ export default function Login() {
         <p class="loadlabel">Loading user credentials...</p>
       </section>
     );
+  }
   if (user && profile === null) return <Navigate to="/setup" replace />;
   return (
     <div className="min-h-screen flex items-center justify-center px-4">

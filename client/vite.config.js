@@ -10,6 +10,7 @@ export default defineConfig({
     babel({ presets: [reactCompilerPreset()] }),
     tailwindcss(),
   ],
+  base: "/",
   server: {
     port: 5173,
     proxy: {
