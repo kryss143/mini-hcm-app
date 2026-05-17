@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../AuthContext.jsx";
 import { api } from "../api.js";
+import Pagination from "../components/Pagination.jsx";
+import usePagination from "../hooks/usePagination.js";
 
 export default function History() {
   const { token, logout } = useAuth();
   const [rows, setRows] = useState([]);
   const [error, setError] = useState("");
 
+  const historyPagination = usePagination(rows, 10);
+
   useEffect(() => {
     if (!token) return;
+
     api("/api/summary/history?limit=60", { token })
       .then((r) => setRows(r.summaries || []))
       .catch((e) => {
@@ -16,10 +21,12 @@ export default function History() {
           logout();
           return;
         }
+
         if (e.code === "network/bad-gateway") {
           setError("Server is unreachable. Please try again later.");
           return;
         }
+
         setError(e.message);
       });
   }, [token]);
@@ -27,7 +34,9 @@ export default function History() {
   return (
     <div className="card">
       <h2>Daily history</h2>
+
       {error && <p className="error">{error}</p>}
+
       <div style={{ overflowX: "auto" }}>
         <table className="data">
           <thead>
@@ -41,8 +50,9 @@ export default function History() {
               <th>Worked</th>
             </tr>
           </thead>
+
           <tbody>
-            {rows.map((r) => (
+            {historyPagination.paged.map((r) => (
               <tr key={r.id || r.dateKey}>
                 <td>{r.dateKey}</td>
                 <td>{r.regularHours}</td>
@@ -53,6 +63,7 @@ export default function History() {
                 <td>{r.totalWorkedHours}</td>
               </tr>
             ))}
+
             {rows.length === 0 && (
               <tr>
                 <td colSpan={7} style={{ color: "var(--muted)" }}>
@@ -63,6 +74,12 @@ export default function History() {
           </tbody>
         </table>
       </div>
+
+      <Pagination
+        page={historyPagination.page}
+        totalPages={historyPagination.totalPages}
+        onPageChange={historyPagination.setPage}
+      />
     </div>
   );
 }

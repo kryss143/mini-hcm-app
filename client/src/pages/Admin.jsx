@@ -146,7 +146,7 @@ export default function Admin() {
     },
   ];
   const punch = useSortFilter(attendance, punchFields, userMap, roleMap);
-  const punchPagination = usePagination(punch.sorted, 5); // ← pagination
+  const punchPagination = usePagination(punch.sorted, 10); // ← pagination
 
   // ── Daily sort/filter ────────────────────────────────────────────
   const dailyFields = [
@@ -179,7 +179,7 @@ export default function Admin() {
     },
   ];
   const daily = useSortFilter(dailyRows, dailyFields, userMap, roleMap);
-  const dailyPagination = usePagination(daily.sorted, 5); // ← pagination
+  const dailyPagination = usePagination(daily.sorted, 10); // ← pagination
 
   // ── Weekly sort/filter ───────────────────────────────────────────
   const weeklyFields = [
@@ -226,7 +226,7 @@ export default function Admin() {
     userMap,
     roleMap,
   );
-  const weeklyPagination = usePagination(weeklySort.sorted, 5); // ← pagination
+  const weeklyPagination = usePagination(weeklySort.sorted, 10); // ← pagination
 
   async function reloadPunches() {
     setLoadingPunches(true);
