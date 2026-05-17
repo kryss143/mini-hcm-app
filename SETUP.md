@@ -1,4 +1,4 @@
-Setup: copy server/env.example to server/.env. Copy client/.env.example to client/.env.local. Enable Firebase Auth email password and Firestore. Download service account JSON and set GOOGLE*APPLICATION_CREDENTIALS in server .env (or FIREBASE_SERVICE_ACCOUNT_JSON for hosted APIs). Fill VITE_FIREBASE*\* in client .env.local. Leave VITE_API_BASE empty locally so Vite proxies /api to port 4000.
+Setup: copy server/env.example to server/.env. Copy client/.env.example to client/.env.local. Enable Firebase Auth email password and Firestore. Download service account JSON and set GOOGLE*APPLICATION_CREDENTIALS in server .env (or FIREBASE_SERVICE_ACCOUNT_JSON for hosted APIs). Fill VITE_FIREBASE*\* in client .env.local. Leave VITE_API_BASE empty locally so Vite proxies /api to specific port.
 
 Commands: from mini-hcm run npm install, npm run install:all, npm run dev. Install firebase-tools, run firebase login, firebase use your-project-id, then firebase deploy --only firestore:rules,firestore:indexes.
 Admin: set users/{uid}.role to admin in console, or set ADMIN_SETUP_SECRET in server .env and paste matching value in profile setup form.
