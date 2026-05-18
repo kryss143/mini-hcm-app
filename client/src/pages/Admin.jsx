@@ -62,13 +62,10 @@ function useSortFilter(rows, fields, userMap, roleMap) {
   const sorted = useMemo(() => {
     return [...rows]
       .filter((row) => {
-        if (filterRole !== "all" && roleMap[row.userId] !== filterRole) {
+        if (filterRole !== "all" && roleMap[row.userId] !== filterRole)
           return false;
-        }
-
         const userSearch = filterUser.trim().toLowerCase();
         if (!userSearch) return true;
-
         const userText =
           `${userMap[row.userId] || ""} ${row.userId}`.toLowerCase();
         return userText.includes(userSearch);
@@ -77,7 +74,6 @@ function useSortFilter(rows, fields, userMap, roleMap) {
         const field = fields.find((f) => f.key === sortCol);
         const valA = field?.getValue(a, userMap, roleMap) ?? "";
         const valB = field?.getValue(b, userMap, roleMap) ?? "";
-
         if (valA < valB) return sortDir === "asc" ? -1 : 1;
         if (valA > valB) return sortDir === "asc" ? 1 : -1;
         return 0;
@@ -146,7 +142,7 @@ export default function Admin() {
     },
   ];
   const punch = useSortFilter(attendance, punchFields, userMap, roleMap);
-  const punchPagination = usePagination(punch.sorted, 10); // ← pagination
+  const punchPagination = usePagination(punch.sorted, 10);
 
   // ── Daily sort/filter ────────────────────────────────────────────
   const dailyFields = [
@@ -179,7 +175,7 @@ export default function Admin() {
     },
   ];
   const daily = useSortFilter(dailyRows, dailyFields, userMap, roleMap);
-  const dailyPagination = usePagination(daily.sorted, 10); // ← pagination
+  const dailyPagination = usePagination(daily.sorted, 10);
 
   // ── Weekly sort/filter ───────────────────────────────────────────
   const weeklyFields = [
@@ -226,11 +222,10 @@ export default function Admin() {
     userMap,
     roleMap,
   );
-  const weeklyPagination = usePagination(weeklySort.sorted, 10); // ← pagination
+  const weeklyPagination = usePagination(weeklySort.sorted, 10);
 
   async function reloadPunches() {
     setLoadingPunches(true);
-
     try {
       const r = await api("/api/admin/attendance?limit=300", { token });
       setAttendance(r.attendance || []);
@@ -241,20 +236,17 @@ export default function Admin() {
 
   useEffect(() => {
     if (!token) return;
-
     setLoadingUsers(true);
     api("/api/admin/users", { token })
       .then((r) => setUsers(r.users || []))
       .catch((e) => handleApiError(e, logout, setError))
       .finally(() => setLoadingUsers(false));
-
     reloadPunches().catch((e) => handleApiError(e, logout, setError));
   }, [token]);
 
   async function loadDaily() {
     setError("");
     setLoadingDaily(true);
-
     try {
       const r = await api(
         `/api/admin/reports/daily?date=${encodeURIComponent(dailyDate)}`,
@@ -271,7 +263,6 @@ export default function Admin() {
   async function loadWeekly() {
     setError("");
     setLoadingWeekly(true);
-
     try {
       const r = await api(
         `/api/admin/reports/weekly?weekStart=${encodeURIComponent(weekStart)}`,
@@ -343,7 +334,6 @@ export default function Admin() {
             ))}
           </select>
         </label>
-
         <label
           style={{
             display: "flex",
@@ -362,7 +352,6 @@ export default function Admin() {
             onChange={(e) => hook.setFilterUser(e.target.value)}
           />
         </label>
-
         {(hook.filterRole !== "all" || hook.filterUser.trim()) && (
           <button
             type="button"
@@ -467,6 +456,7 @@ export default function Admin() {
                 </tr>
               </thead>
               <tbody>
+                {/* ↓ single ternary, no duplicate map */}
                 {loadingPunches ? (
                   <tr>
                     <td
@@ -495,15 +485,6 @@ export default function Admin() {
                   </tr>
                 ) : (
                   punchPagination.paged.map((row) => (
-                    <tr key={row.id}>
-                      {/* keep your existing row cells here */}
-                    </tr>
-                  ))
-                )}
-                {punchPagination.paged.map(
-                  (
-                    row, // ← use paged instead of sorted
-                  ) => (
                     <tr key={row.id}>
                       <td>
                         <span>{displayName(row.userId)}</span>
@@ -556,12 +537,11 @@ export default function Admin() {
                         </button>
                       </td>
                     </tr>
-                  ),
+                  ))
                 )}
               </tbody>
             </table>
           </div>
-          {/* ← Pagination */}
           <Pagination
             page={punchPagination.page}
             totalPages={punchPagination.totalPages}
@@ -646,6 +626,7 @@ export default function Admin() {
               </tr>
             </thead>
             <tbody>
+              {/* ↓ single ternary, no duplicate map */}
               {loadingDaily ? (
                 <tr>
                   <td
@@ -685,24 +666,8 @@ export default function Admin() {
                   </tr>
                 ))
               )}
-              {dailyPagination.paged.map(
-                (
-                  r, // ← use paged instead of sorted
-                ) => (
-                  <tr key={r.id}>
-                    <td>{displayName(r.userId)}</td>
-                    <td>{rolePill(r.userId)}</td>
-                    <td>{r.regularHours}</td>
-                    <td>{r.overtimeHours}</td>
-                    <td>{r.nightDifferentialHours}</td>
-                    <td>{r.lateMinutes}</td>
-                    <td>{r.undertimeMinutes}</td>
-                  </tr>
-                ),
-              )}
             </tbody>
           </table>
-          {/* ← Pagination */}
           <Pagination
             page={dailyPagination.page}
             totalPages={dailyPagination.totalPages}
@@ -739,6 +704,7 @@ export default function Admin() {
                 }}
               />
               <div className="stack">
+                {/* ↓ single ternary, no duplicate map */}
                 {loadingWeekly ? (
                   <p style={{ color: "var(--muted)" }}>
                     Loading weekly report…
@@ -749,19 +715,6 @@ export default function Admin() {
                   </p>
                 ) : (
                   weeklyPagination.paged.map((emp) => (
-                    <div
-                      key={emp.userId}
-                      className="card"
-                      style={{ background: "rgba(0,0,0,0.2)" }}
-                    >
-                      {/* keep your existing weekly employee card content here */}
-                    </div>
-                  ))
-                )}
-                {weeklyPagination.paged.map(
-                  (
-                    emp, // ← use paged instead of sorted
-                  ) => (
                     <div
                       key={emp.userId}
                       className="card"
@@ -810,10 +763,9 @@ export default function Admin() {
                         </div>
                       </div>
                     </div>
-                  ),
+                  ))
                 )}
               </div>
-              {/* ← Pagination */}
               <Pagination
                 page={weeklyPagination.page}
                 totalPages={weeklyPagination.totalPages}
